@@ -1,5 +1,7 @@
 <?php
 
+use app\components\Response;
+
 $params = require __DIR__ . '/params.php';
 
 $config = [
@@ -13,13 +15,18 @@ $config = [
     'components' => [
         'request' => [
             'cookieValidationKey' => 'qPcAhUmifI0p3KpdNSLcC8KXpLoKKzuF',
+            'enableCsrfValidation' => false
+        ],
+        'response' => [
+            'class' => Response::class
         ],
         'authManager' => [
             'class' => 'yii\rbac\DbManager',
         ],
         'user' => [
             'identityClass' => 'app\models\User',
-            'enableAutoLogin' => true,
+            'enableAutoLogin' => false,
+            'enableSession' => false
         ],
         'errorHandler' => [
             'errorAction' => 'site/error',
@@ -42,7 +49,9 @@ $config = [
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
+            'baseUrl' => '/',
             'rules' => [
+                'api/v1' => 'site/index'
             ],
         ],
     ],
