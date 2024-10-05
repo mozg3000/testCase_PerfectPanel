@@ -16,20 +16,33 @@ final class Response extends \yii\web\Response
     public const SUCCESS = 'success';
     public const ERROR   = 'error';
 
-    public function getErrorResponse()
+    /**
+     * Sets error response
+     * @param  int      $code
+     * @param  string   $message
+     * @return void
+     */
+    public function setError(int $code, string $message = 'Invalid token'): void
     {
-        return [
-            'status' => Response::ERROR,
-            'code' => 403,
-            'message' => 'Invalid token'
+        $this->data = [
+            'status'  => Response::ERROR,
+            'code'    => $code,
+            'message' => $message
         ];
     }
-    public function getSuccessResponse(array $data)
+
+    /**
+     * Sets success response
+     * @param  array $data
+     * @param  int   $code
+     * @return void
+     */
+    public function setSuccess(array $data, int $code = 200): void
     {
-        return [
+        $this->data = [
             'status' => Response::SUCCESS,
-            'code' => 200,
-            'data' => $data
+            'code'   => $code,
+            'data'   => $data
         ];
     }
 }

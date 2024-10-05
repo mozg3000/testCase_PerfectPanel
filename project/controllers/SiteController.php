@@ -7,6 +7,7 @@ use app\controllers\actions\Rate;
 use app\models\User;
 use Yii;
 use yii\web\Controller;
+use yii\web\ForbiddenHttpException;
 use yii\web\Request;
 
 class SiteController extends Controller
@@ -29,24 +30,38 @@ class SiteController extends Controller
         ];
     }
 
-    public function actionIndex(string $method, Request $request, Response $response)
+    public function actionIndex(
+        string   $method,
+        Request  $request,
+        Response $response
+    )
     {
-        $token = $this->request->getHeaders()->get('Authorization');
-        $token = substr($token, 7);
-        $user = User::findIdentityByAccessToken($token);
-        if (!$user) {
-            return $response->getErrorResponse();
+        try {
+            $token = $this->request->getHeaders()->get('Authorization');
+            $token = substr($token, 7);
+            $user = User::findIdentityByAccessToken($token);
+            if (!$user) {
+                $response->setError(403);
+                throw new ForbiddenHttpException('Invalid token');
+            }
+            Yii::$app->user->login($user);
+            $parameter = $request->getQueryParam('parameter', null);
+            $this->runAction($method, ['parameter' => $parameter]);
+        } catch (ForbiddenHttpException $e) {
+            $response->setError(403, $e->getMessage());
         }
-        Yii::$app->user->login($user);
-        $parameter = $request->getQueryParam('parameter', null);
-
-        return $this->runAction($method, ['parameter' => $parameter]);
+// catch (\Throwable $e) { // чтобы видить ошибки для отладки
+//            $response->setError(403);
+//        }
     }
 
     public function checkAccess($action, $model = null, $params = [])
     {
         switch ($action) {
-            default: return true;
+            case 'rates': {
+                return true;
+            }
+            default: throw new ForbiddenHttpException('Invalid token');
         }
     }
 }
