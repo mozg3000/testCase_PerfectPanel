@@ -1,4 +1,4 @@
-init: pull build dirs permission
+init: pull build dirs permission install
 pull:
 	docker-compose pull
 build:
