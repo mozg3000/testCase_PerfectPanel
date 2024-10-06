@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\components\Response;
+use app\controllers\actions\Convert;
 use app\controllers\actions\Rate;
 use app\models\User;
 use Yii;
@@ -23,8 +24,13 @@ class SiteController extends Controller
     {
         return [
             'rates' => [
-                'class' => Rate::class,
-                'modelClass' => '',
+                'class'       => Rate::class,
+                'modelClass'  => '',
+                'checkAccess' => [$this, 'checkAccess']
+            ],
+            'convert' => [
+                'class'       => Convert::class,
+                'modelClass'  => '',
                 'checkAccess' => [$this, 'checkAccess']
             ]
         ];
@@ -41,12 +47,29 @@ class SiteController extends Controller
             $token = substr($token, 7);
             $user = User::findIdentityByAccessToken($token);
             if (!$user) {
-                $response->setError(403);
                 throw new ForbiddenHttpException('Invalid token');
             }
             Yii::$app->user->login($user);
-            $parameter = $request->getQueryParam('parameter', null);
-            $this->runAction($method, ['parameter' => $parameter]);
+            $payload = [];
+            switch ($method) {
+                case 'rates': {
+                    $parameter = $request->getQueryParam('parameter', null);
+                    $payload   = ['parameter' => $parameter];
+                    break;
+                }
+                case 'convert': {
+                    $content = file_get_contents('php://input');
+                    $body    = json_decode($content, true);
+                    extract($body);
+                    $payload = [
+                        'from'   => $currency_from,
+                        'to'     => $currency_to,
+                        'amount' => $value
+                    ];
+                    break;
+                }
+            }
+            $this->runAction($method, $payload);
         } catch (ForbiddenHttpException $e) {
             $response->setError(403, $e->getMessage());
         }
@@ -59,6 +82,9 @@ class SiteController extends Controller
     {
         switch ($action) {
             case 'rates': {
+                return true;
+            }
+            case 'convert': {
                 return true;
             }
             default: throw new ForbiddenHttpException('Invalid token');

@@ -19,10 +19,10 @@ class ApiResponseExtractor implements ApiResponseExtractorInterface
     public function extract(callable $comparator = null): array
     {
         $data = $this->response?->data['data'] ?? [];
-        $filteredData = !$comparator ? array_filter($data, $comparator) : $data;
+        $filteredData = $comparator ? array_filter($data, $comparator) : $data;
         return array_map(fn(array $a) => [
-            'currency' => $a['symbol'],
-            'rate' => $a['rateUsd']
+            'currency'  => $a['symbol'],
+            'rate'      => $a['rateUsd']
         ], $filteredData);
     }
 }

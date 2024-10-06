@@ -14,4 +14,22 @@ class RateApiResponse implements RateApiResponseInterface
         $rates = ArrayHelper::map($rates, 'currency', 'rate');
         return $rates;
     }
+
+    public function converssionResponse(
+        string $from,
+        string $to,
+        float  $amount,
+        float  $converted,
+        float  $rate
+    )
+    {
+        return [
+            'currency_from'     => $from,
+            'currency_to'       => $to,
+            'value'             => $amount,
+            'converted_value'   => $converted,
+            'rate'              => $rate
+
+        ];
+    }
 }
